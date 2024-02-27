@@ -1,4 +1,4 @@
-from scrabble.scrabble import wordlist, scores
+from scrabble.scrabble import *
 from collections import defaultdict
 import graphviz
 
@@ -38,6 +38,18 @@ class PrefixTree:
 
         if currentNode == None: return False
         return currentNode.value == word
+    
+    def get_next_letters(self, word: str) -> list[str]:
+        # return a list of letters
+        currentNode = self.root
+        createdString = ""
+        for letter in word:
+            if not currentNode: break
+            createdString += letter
+            currentNode = currentNode.get(letter)
+
+        if currentNode == None: return []
+        return list(currentNode.pathing.keys())
 
     def visualize(self):
         dot = graphviz.Digraph()
@@ -54,21 +66,22 @@ class PrefixTree:
 class ScrabbleChecker:
     def __init__(self):
         self.prefix_tree = PrefixTree()
-        self.initialize()
+        self.prefix_sub_1_tree = PrefixTree()
+        self.initializeRoots()
 
-    def initialize(self):
+    def initializeRoots(self):
         for word in wordlist:
             self.prefix_tree.add(word)
-
-    def get_score(self, word):
-        s = 0 
-        for letter in word: s += scores[letter]
-        return s 
+        for word in better_wordlist:
+            self.prefix_sub_1_tree.add(word)
     
     def is_word(self, word):
         return word in wordlist
     
     def is_prefix(self, prefix):
-        #see if string is a valid prefix of a word 
-        
+        #see if string is a valid prefix of a word     
         return self.prefix_tree.get(prefix)
+    
+    def get_possible_letter_subs(self, prefix):
+        #get the possible letters that can sub in for a valid prefix given a prefix
+        return self.prefix_sub_1_tree.get_next_letters(prefix[0:len(prefix)-1])
