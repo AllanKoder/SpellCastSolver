@@ -6,12 +6,12 @@ checker = ScrabbleChecker()
 matrix = [
     ['t', 'v', 'b', 'o', 'f'],
     ['y', 't', 'a', 'k', 'l'],
-    ['i', 'a', 'a', 'n', 'e'],
+    ['i', 'a', 'c', 'n', 'e'],
     ['u', 'o', 'l', 's', 'r'],
     ['i', 'i', 'r', 'r', 'x'],
 ]
 
-double_word = (1,1)
+double_word = (2,2)
 double_letter = ()
 triple_letter = ()
 
@@ -37,6 +37,9 @@ def search_at_tile(cords, current_word, visited, substitutions=0):
     if cords in visited:
         return set()
     visited.add(cords)
+
+    print(current_word)
+
     # valid words 
     valid_words = set() # list of Words
     if checker.is_prefix(current_word) == False:
@@ -44,7 +47,7 @@ def search_at_tile(cords, current_word, visited, substitutions=0):
     
     if checker.is_word(current_word):
         path_taken = visited.copy()
-        current_score = get_score(visited, matrix, double_word, double_letter, triple_letter)
+        current_score = get_score(traversal=visited, matrix=matrix, double_word=double_word, double_letter=double_letter, triple_letter=triple_letter)
         valid_words.add((current_word, tuple(path_taken), current_score))
 
     # deal with substitutions
@@ -58,15 +61,16 @@ def search_at_tile(cords, current_word, visited, substitutions=0):
             new_words = search_at_tile(cords=cords, current_word=new_current, visited=new_visited.copy(), substitutions=substitutions-1)
             valid_words.update(new_words) 
 
-    neighbours = [(-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1), (0, 1)]
+    neighbours = [(-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1), (0, 1), (1,-1), (-1,-1)]
     for add_x, add_y in neighbours:
         new_cords = (cords[0]+add_y, cords[1]+add_x)
         if is_valid_cords(new_cords):
             new_current = current_word+matrix[new_cords[0]][new_cords[1]]
 
-            new_words = search_at_tile(cords=new_cords, current_word=new_current, visited=visited.copy(), substitutions=substitutions)
+            another_new_visited = visited.copy()
+
+            new_words = search_at_tile(cords=new_cords, current_word=new_current, visited=another_new_visited.copy(), substitutions=substitutions)
             valid_words.update(new_words)  # Merge sets instead of adding
     return valid_words
     
-
 print(search_for_words(1)[0:10])

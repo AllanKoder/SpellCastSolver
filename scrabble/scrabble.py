@@ -4,7 +4,7 @@
 # for Scrabble game 
 #
 WORD_LIST = "scrabble/test.txt"
-MINIMUM_BETTER_SCORE = 1
+MINIMUM_BETTER_SCORE = 10
 
 # set up a dictionary of points for each letter, to be used to calculate scores
 scores = {"a": 1, "c": 5, "b": 4, "e": 1, "d": 3, "g": 3,
@@ -12,6 +12,7 @@ scores = {"a": 1, "c": 5, "b": 4, "e": 1, "d": 3, "g": 3,
           "l": 3, "o": 1, "n": 2, "q": 8, "p": 4, "s": 2,
           "r": 2, "u": 4, "t": 2, "w": 5, "v": 5, "y": 4,
           "x": 7, "z": 8}
+
 
 def get_raw_score(word):
     s = 0 
@@ -34,9 +35,9 @@ def get_score(traversal: set[tuple], matrix: list[list[str]], double_word : tupl
     for y,x in traversal:
         letter = matrix[y][x]
         score += scores[letter] * get_multiplier((y,x), double_letter, triple_letter)
-    return score*double_multiplier
+    final_score = score*double_multiplier + (0 if len(traversal) < 6 else 10) 
+    return final_score
     
-
 wordlist = open(WORD_LIST).readlines()
 # Get rid of newlines
 wordlist = set([word.lower().strip() for word in wordlist])
