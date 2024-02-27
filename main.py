@@ -5,12 +5,15 @@ checker = ScrabbleChecker()
 
 matrix = [
     ['t', 'v', 'b', 'o', 'f'],
-    ['y', 'i', 'd', 'k', 'l'],
-    ['i', 'a', 'i', 'n', 'e'],
-    ['u', 'o', 'r', 's', 'r'],
+    ['y', 't', 'a', 'k', 'l'],
+    ['i', 'a', 'a', 'n', 'e'],
+    ['u', 'o', 'l', 's', 'r'],
     ['i', 'i', 'r', 'r', 'x'],
-
 ]
+
+double_word = (1,1)
+double_letter = ()
+triple_letter = ()
 
 def search_for_words(subs: int = 0):
     all_words = set()
@@ -18,7 +21,7 @@ def search_for_words(subs: int = 0):
         for x in range(len(matrix[y])):
             all_words.update(search_at_tile((y,x), matrix[y][x], set(), subs))
     output = list(all_words)
-    output.sort(key= lambda x: x[2], reverse=True)
+    output.sort(key = lambda x: x[2], reverse=True)
     return output
 
 from collections import namedtuple
@@ -39,10 +42,10 @@ def search_at_tile(cords, current_word, visited, substitutions=0):
     if checker.is_prefix(current_word) == False:
         return set()
     
-    
     if checker.is_word(current_word):
         path_taken = visited.copy()
-        valid_words.add((current_word, tuple(path_taken), get_raw_score(word=current_word)))
+        current_score = get_score(visited, matrix, double_word, double_letter, triple_letter)
+        valid_words.add((current_word, tuple(path_taken), current_score))
 
     # deal with substitutions
     if substitutions > 0:
@@ -66,6 +69,4 @@ def search_at_tile(cords, current_word, visited, substitutions=0):
     return valid_words
     
 
-print(search_for_words(2)[0:10])
-
-#((2, 3), (2, 4), (1, 2), (0, 2), (3, 3), (3, 2), (1, 3)), 21)
+print(search_for_words(1)[0:10])
