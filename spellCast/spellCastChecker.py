@@ -1,5 +1,4 @@
-from scrabble.scrabble import *
-from collections import defaultdict
+from spellCast.spellCast import *
 import graphviz
 
 class PrefixNode:
@@ -54,7 +53,7 @@ class PrefixTree:
     def visualize(self):
         dot = graphviz.Digraph()
         self._visualize_helper(self.root, dot)
-        dot.render('trie_visualization', format='png', cleanup=True)
+        print(dot.source)
 
     def _visualize_helper(self, node, dot):
         for letter, child in node.pathing.items():
@@ -63,7 +62,7 @@ class PrefixTree:
             self._visualize_helper(child, dot)
 
 
-class ScrabbleChecker:
+class SpellCastChecker:
     def __init__(self):
         self.prefix_tree = PrefixTree()
         self.prefix_sub_1_tree = PrefixTree()
@@ -79,9 +78,12 @@ class ScrabbleChecker:
         return word in wordlist
     
     def is_prefix(self, prefix):
-        #see if string is a valid prefix of a word     
+        #see if string is a valid prefix of a word
         return self.prefix_tree.get(prefix)
     
     def get_possible_letter_subs(self, prefix):
         #get the possible letters that can sub in for a valid prefix given a prefix
         return self.prefix_sub_1_tree.get_next_letters(prefix[0:len(prefix)-1])
+
+    def visualize_sub_tree(self):
+        self.prefix_sub_1_tree.visualize()
