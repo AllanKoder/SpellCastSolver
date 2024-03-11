@@ -33,8 +33,12 @@ class SpellCastSolver:
             for x in range(len(self.matrix[y])):
                 letter = self.matrix[y][x]
                 self.search_at_tile((y,x), letter, set(), subs)
+        
         output = list(self.valid_words)
-        output.sort(key = lambda x: x[3] - len(x[2]), reverse=True)
+        if len(output) == 0:
+            return None
+        
+        output.sort(key = lambda x: x[3] - len(x[2])*3, reverse=True)
         return output
 
     def is_valid_cords(self, cords):

@@ -3,17 +3,33 @@ from spellCast.spellCastChecker import *
 from spellCast.spellCast import *
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel
 
 app = FastAPI()
 solver = SpellCastSolver()
+
+origins = [
+    "http://localhost",
+    "http://localhost:8000"
+    "http://localhost:8080",
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class GameSettings(BaseModel):
     matrix: list[list[str]]
     double_word: tuple[int, int] = None
     double_letter: tuple[int, int] = None
     triple_letter: tuple[int, int] = None
-
 
 
 @app.post("/score/{replacements}", )
@@ -30,4 +46,11 @@ async def get_score(replacements : int, settings: GameSettings):
         double_letter=settings.double_letter,
         triple_letter=settings.triple_letter
     )
-    return { "solution" : solver.search_for_words(replacements)[0] }
+    result = solver.search_for_words(replacements)
+
+    if result == None:
+        return { "word" : "NONE", "tiles":"NONE", "replaced": "NONE", "score": 0 }
+    
+    word, tiles, replaced, score = result[0]
+
+    return { "word" : word, "tiles":tiles, "replaced": replaced, "score": score }

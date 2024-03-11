@@ -3,8 +3,8 @@
 # Read sowpods.txt file, which is a list of some 260,000 valid english words 
 # for Scrabble game 
 #
-WORD_LIST = "spellCast/sowpods.txt"
-MINIMUM_GOOD_SCORE = 15
+WORD_LIST = "spellCast/test.txt"
+MINIMUM_GOOD_SCORE = 1
 MINIMUM_BETTER_SCORE = 25
 
 # set up a dictionary of points for each letter, to be used to calculate scores
