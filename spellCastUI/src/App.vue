@@ -36,10 +36,6 @@ function setNoneMode() {
   mode.value = 'none';
 }
 
-function setNormalMode() {
-  mode.value = 'normal';
-}
-
 function handleTileSelected(tile) {
   if (mode.value === 'double-letter') {
     doubleLetterTile.value = tile;
@@ -134,7 +130,6 @@ async function getBestWords(){
         <button @click="setDoubleLetterMode">DL</button>
         <button @click="setDoubleWordMode">DW</button>
         <button @click="setTripleLetterMode">TL</button>
-        <button @click="setNormalMode">Normal</button>
         <button @click="setNoneMode" class="bg-red-100">Clear</button>
       </div>
     </div>
