@@ -1,4 +1,4 @@
-from spellCast.spellCast import get_score
+from spellCast.spellCast import get_final_score, get_letter_score
 from spellCast.spellCastChecker import SpellCastChecker
 
 class SpellCastSolver:
@@ -49,7 +49,7 @@ class SpellCastSolver:
             return False
         return True
 
-    def search_at_tile(self, starting_cords, cords, current_word, visited, substitutions=0, changed=set()):
+    def search_at_tile(self, starting_cords, cords, current_word, visited, substitutions=0, changed=set(), score = 0):
         #return set of (startingCords, word, path to get word, dictionary of cord to the changed letter, score)  
         if cords in visited:
             return
@@ -64,7 +64,22 @@ class SpellCastSolver:
                 new_current = prefix_word + potential_letter
                 new_changed = changed.copy()
                 new_changed.add(cords)
-                self.search_at_tile(starting_cords, cords=cords, current_word=new_current, visited=new_visited.copy(), substitutions=substitutions-1, changed=new_changed)
+                
+                new_score = score
+                new_score += get_letter_score(
+                    letter=potential_letter,
+                    cord=cords,
+                    double_letter=self.double_letter,
+                    triple_letter=self.triple_letter)
+                
+                self.search_at_tile(
+                                    starting_cords=starting_cords, 
+                                    cords=cords, 
+                                    current_word=new_current, 
+                                    visited=new_visited.copy(), 
+                                    substitutions=substitutions-1, 
+                                    changed=new_changed, 
+                                    score=new_score)
                 
         # deal with repeats
         visited.add(cords)
@@ -74,7 +89,11 @@ class SpellCastSolver:
         
         if self.checker.is_word(current_word):
             path_taken = visited.copy()
-            current_score = get_score(traversal=visited, matrix=self.matrix, double_word=self.double_word, double_letter=self.double_letter, triple_letter=self.triple_letter)
+            current_score = get_final_score(
+                score=score,
+                traversal=path_taken,
+                double_word=self.double_word
+                )
             self.valid_words.add((tuple(starting_cords), str(current_word), tuple(path_taken), tuple(changed), int(current_score)))
 
 
@@ -83,11 +102,26 @@ class SpellCastSolver:
             new_cords = (cords[0]+add_y, cords[1]+add_x)
 
             if self.is_valid_cords(new_cords):
-                new_current = current_word+self.matrix[new_cords[0]][new_cords[1]]
+                new_letter = self.matrix[new_cords[0]][new_cords[1]]
+                new_current = current_word+new_letter
 
                 another_new_visited = visited.copy()
 
-                self.search_at_tile(starting_cords, cords=new_cords, current_word=new_current, visited=another_new_visited.copy(), substitutions=substitutions, changed=changed)
+                new_score = score
+                new_score += get_letter_score(
+                    letter=new_letter,
+                    cord=cords,
+                    double_letter=self.double_letter,
+                    triple_letter=self.triple_letter)
+
+                self.search_at_tile(
+                    starting_cords=starting_cords, 
+                    cords=new_cords, 
+                    current_word=new_current, 
+                    visited=another_new_visited.copy(), 
+                    substitutions=substitutions, 
+                    changed=changed,
+                    score=new_score)
                 # merge sets
 
     def get_solutions(self):

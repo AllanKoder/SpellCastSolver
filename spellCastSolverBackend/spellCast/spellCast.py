@@ -44,22 +44,18 @@ def get_raw_score(word):
     for letter in word: s += scores[letter]
     return s 
 
-def get_multiplier(cord: tuple, double_letter: set[tuple], triple_letter: set[tuple]):
-    output = 1
+def get_letter_score(letter : str, cord: tuple[int,int], double_letter: set[tuple], triple_letter: set[tuple]):
+    s = scores[letter]
     if cord == double_letter:
-        output = 2
+        s *= 2
     if cord == triple_letter:
-        output = 3
-    return output
+        s *= 3
+    return s 
 
-def get_score(traversal: set[tuple], matrix: list[list[str]], double_word : tuple, double_letter: tuple, triple_letter: tuple):
-    score = 0
+def get_final_score(score: int, traversal: set[tuple], double_word : tuple):
     double_multiplier = 1
     if double_word in traversal:
         double_multiplier = 2
-    for y,x in traversal:
-        letter = matrix[y][x]
-        score += scores[letter] * get_multiplier((y,x), double_letter, triple_letter)
     final_score = score*double_multiplier + (0 if len(traversal) < 6 else 10) 
     return final_score
     
