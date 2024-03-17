@@ -19,6 +19,9 @@ class SpellCastSolver:
         
     def set_game_properties(self, matrix=None, double_word=None, double_letter=None, triple_letter=None):
         if matrix is not None:
+            for y in range(len(matrix)):
+                for x in range(len(matrix[y])):
+                    matrix[y][x] = matrix[y][x].lower()
             self.matrix = matrix
         if double_word is not None:
             self.double_word = double_word
@@ -32,13 +35,13 @@ class SpellCastSolver:
         for y in range(len(self.matrix)):
             for x in range(len(self.matrix[y])):
                 letter = self.matrix[y][x]
-                self.search_at_tile((y,x), letter, set(), subs)
+                self.search_at_tile((y,x), (y,x), letter, set(), subs)
         
         output = list(self.valid_words)
         if len(output) == 0:
             return None
         
-        output.sort(key = lambda x: x[3] - len(x[2])*3, reverse=True)
+        output.sort(key = lambda x: x[4], reverse=True)
         return output
 
     def is_valid_cords(self, cords):
@@ -46,32 +49,33 @@ class SpellCastSolver:
             return False
         return True
 
-    def search_at_tile(self, cords, current_word, visited, substitutions=0, changed=set()):
+    def search_at_tile(self, starting_cords, cords, current_word, visited, substitutions=0, changed=set()):
         #return set of (word, path to get word, dictionary of cord to the changed letter, score)  
         if cords in visited:
             return
-        visited.add(cords)
     
 
         # deal with substitutions
         if substitutions > 0:
             prefix_word = current_word[0:len(current_word)-1]
             new_visited = visited.copy()
-            new_visited.remove(cords)
             
             for potential_letter in self.checker.get_possible_letter_subs(current_word):
                 new_current = prefix_word + potential_letter
                 new_changed = changed.copy()
                 new_changed.add(cords)
-                self.search_at_tile(cords=cords, current_word=new_current, visited=new_visited.copy(), substitutions=substitutions-1, changed=new_changed)
+                self.search_at_tile(starting_cords, cords=cords, current_word=new_current, visited=new_visited.copy(), substitutions=substitutions-1, changed=new_changed)
                 
+        # deal with repeats
+        visited.add(cords)
+
         if self.checker.is_prefix(current_word) == False:
             return
         
         if self.checker.is_word(current_word):
             path_taken = visited.copy()
             current_score = get_score(traversal=visited, matrix=self.matrix, double_word=self.double_word, double_letter=self.double_letter, triple_letter=self.triple_letter)
-            self.valid_words.add((str(current_word), tuple(path_taken), tuple(changed), int(current_score)))
+            self.valid_words.add((tuple(starting_cords), str(current_word), tuple(path_taken), tuple(changed), int(current_score)))
 
 
         neighbours = [(-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1), (0, 1), (1,-1), (-1,-1)]
@@ -83,8 +87,8 @@ class SpellCastSolver:
 
                 another_new_visited = visited.copy()
 
-                self.search_at_tile(cords=new_cords, current_word=new_current, visited=another_new_visited.copy(), substitutions=substitutions, changed=changed)
+                self.search_at_tile(starting_cords, cords=new_cords, current_word=new_current, visited=another_new_visited.copy(), substitutions=substitutions, changed=changed)
                 # merge sets
 
     def get_solutions(self):
-        return self.valid_words
+        return list(self.valid_words)

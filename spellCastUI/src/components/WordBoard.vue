@@ -18,16 +18,26 @@
 </template>
 
 <script setup>
-import { ref, computed  } from 'vue';
+import { ref, watch, toRaw } from 'vue';
 
 const emit = defineEmits(['matrix-emitted'])
 const props = defineProps({
-  mode: String
+  wordTiles: Array,
+  startingTile: Array,
 });
 
-const matrix = ref(Array(5).fill().map(() => Array(5).fill('')));
+const matrix = ref(Array(5).fill().map(() => Array(5).fill('a')));
 const selectedTile = ref(null);
+const coloredUsedTiles = ref(props.wordTiles);
+const coloredStartingTile = ref(props.startingTile);
 
+watch(() => props.wordTiles, async (newTiles, _) => {
+  coloredUsedTiles.value = newTiles
+})
+
+watch(() => props.startingTile, async (newTile, _) => {
+  coloredStartingTile.value = newTile
+})
 
 function emitMatrix() {
   emit('matrix-emitted', matrix.value);
@@ -35,20 +45,29 @@ function emitMatrix() {
 
 function handleKeydown(event, row, col) {
   const key = event.key;
-  if (key === 'ArrowUp' && row > 1) {
-    event.preventDefault();
-    focusInput(row - 1, col);
-  } else if (key === 'ArrowDown' && row < 5) {
-    event.preventDefault();
-    focusInput(row + 1, col);
-  } else if (key === 'ArrowLeft' && col > 1) {
-    event.preventDefault();
-    focusInput(row, col - 1);
-  } else if (key === 'ArrowRight' && col < 5) {
-    event.preventDefault();
-    focusInput(row, col + 1);
+  const isCharacterKey = key.length === 1;
+
+  if (isCharacterKey) {
+    // Clear the current value and set the new one
+    this.matrix[row-1][col-1] = '';
+  } else {
+    // Handle arrow keys
+    if (key === 'ArrowUp' && row > 1) {
+      event.preventDefault();
+      focusInput(row - 1, col);
+    } else if (key === 'ArrowDown' && row < 5) {
+      event.preventDefault();
+      focusInput(row + 1, col);
+    } else if (key === 'ArrowLeft' && col > 1) {
+      event.preventDefault();
+      focusInput(row, col - 1);
+    } else if (key === 'ArrowRight' && col < 5) {
+      event.preventDefault();
+      focusInput(row, col + 1);
+    }
   }
 }
+
 function focusInput(row, col) {
   const selector = `#${CSS.escape(row + '-' + col)}`;
   const input = document.querySelector(selector);
@@ -58,24 +77,27 @@ function focusInput(row, col) {
 }
 
 function toggleTileState(row, col) {
-  const key = `[${row},${col}]`;
+  const key = `${row},${col}`;
   selectedTile.value = key;
 }
 
-const tileClasses = computed(() => {
-  return {
-    'double-letter': 'bg-blue-200',
-    'double-word': 'bg-purple-200',
-    'triple-letter': 'bg-red-200'
-  };
-});
-
 function getTileClass(row, col) {
-  const key = `[${row},${col}]`;
-  if (selectedTile.value && selectedTile.value.key === key) {
-    return `${tileClasses.value == key ? "bg-blue-200" : ""} form-input border-2 border-gray-300 w-16 h-16 text-center text-xl`;
+  const baseClass = 'form-input border-2 border-gray-300 w-16 h-16 text-center text-xl';
+
+  const key = `${row},${col}`;
+  if (!coloredUsedTiles.value || !coloredStartingTile.value) return baseClass;
+
+  const stringifiedStartingTile = coloredStartingTile.value.join(',');
+  const stringifiedTiles = coloredUsedTiles.value.map(tile => tile.join(','));
+
+  if (stringifiedStartingTile.includes(key))
+  {
+    return `bg-blue-200 ${baseClass}`;
   }
-  return 'form-input border-2 border-gray-300 w-16 h-16 text-center text-xl';
+  if (stringifiedTiles.includes(key)){
+    return `bg-green-200 ${baseClass}`;
+  }
+  return baseClass;
 }
 </script>
 

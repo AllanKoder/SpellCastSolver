@@ -5,7 +5,7 @@
 #
 WORD_LIST = "spellCast/test.txt"
 MINIMUM_GOOD_SCORE = 1
-MINIMUM_BETTER_SCORE = 25
+MINIMUM_BETTER_SCORE = 1
 
 # set up a dictionary of points for each letter, to be used to calculate scores
 

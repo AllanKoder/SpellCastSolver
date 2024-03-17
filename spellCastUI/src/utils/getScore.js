@@ -1,4 +1,4 @@
-export const getScore = async (matrix) => {
+export const getScore = async (matrix, subsitutions = 0) => {
     const result = {
         data: null,
         error: null
@@ -7,7 +7,6 @@ export const getScore = async (matrix) => {
     if (matrix == null)
     {   
         result.error = "matrix is null"
-        console.log(result)
         return result
     }
     for (const row of matrix) {
@@ -21,13 +20,13 @@ export const getScore = async (matrix) => {
     }
 
     try {
-      const response = await fetch('/api/score/0', {
+      const response = await fetch(`/api/score/${subsitutions}`, {
         method: 'POST', // Set the method to POST
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          "matrix": matrix
+          "matrix": matrix,
         })
       });
       
@@ -41,8 +40,6 @@ export const getScore = async (matrix) => {
       return result    
     } 
     catch (error) {
-      console.error('Fetch error:', error);
-
       result.error = "fetch error" 
       return result
     }
