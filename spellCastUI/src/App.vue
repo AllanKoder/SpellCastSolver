@@ -7,6 +7,7 @@ import { getScore } from './utils/getScore';
 const matrix = ref(null)
 const currentErrors = ref(null)
 const bestWord = ref("Get the Best Word!")
+const bestScore = ref("")
 const highlightedWords = ref([])
 
 const replacedTiles = ref([])
@@ -15,9 +16,9 @@ const startingSearchTile = ref([])
 const subsitutions = ref(0)
 
 const mode = ref('none');
-const doubleLetterTile = ref(null);
-const doubleWordTile = ref(null);
-const tripleLetterTile = ref(null);
+const doubleLetterTile = ref("");
+const doubleWordTile = ref("");
+const tripleLetterTile = ref("");
 
 function setDoubleLetterMode() {
   mode.value = 'double-letter';
@@ -40,14 +41,15 @@ function setNormalMode() {
 }
 
 function handleTileSelected(tile) {
-  console.log(tile)
-  console.log(doubleLetterTile.value)
   if (mode.value === 'double-letter') {
     doubleLetterTile.value = tile;
+    mode.value = 'normal';
   } else if (mode.value === 'double-word') {
     doubleWordTile.value = tile;
+    mode.value = 'normal';
   } else if (mode.value === 'triple-letter') {
     tripleLetterTile.value = tile;
+    mode.value = 'normal';
   }
   else if (mode.value == "none")
   {
@@ -70,7 +72,14 @@ function setMatrix(newMatrix) {
 };
 
 async function getBestWords(){
-  const result = await getScore(matrix.value, subsitutions.value)
+  let doubleLetter = []
+  let doubleWord = []
+  let tripleLetter = []
+  if (doubleLetterTile.value != "") doubleLetter = doubleLetterTile.value.split(",").map(item => parseInt(item))
+  if (doubleWordTile.value != "") doubleWord = doubleWordTile.value.split(",").map(item => parseInt(item))
+  if (tripleLetterTile.value != "") tripleLetter = tripleLetterTile.value.split(",").map(item => parseInt(item))
+
+  const result = await getScore(matrix.value, subsitutions.value, doubleLetter, doubleWord, tripleLetter)
   
   if (result.error) {
     currentErrors.value = result.error
@@ -85,12 +94,14 @@ async function getBestWords(){
   highlightedWords.value = result.data.tiles
   replacedTiles.value = result.data.replaced
   startingSearchTile.value = result.data.starting_tile
+  bestScore.value = result.data.score
 }
 
 </script>
 
 <template>
   <h1 class="m-3" v-if="bestWord">{{ bestWord }}</h1>
+  <h2 class="m-3" v-if="bestScore"><b>Score: </b>{{ bestScore }}</h2>
 
   <h5 v-if="currentErrors">{{ currentErrors }}</h5>
   <div class="mx-auto">

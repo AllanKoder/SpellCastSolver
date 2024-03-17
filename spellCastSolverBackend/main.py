@@ -27,9 +27,9 @@ app.add_middleware(
 
 class GameSettings(BaseModel):
     matrix: list[list[str]]
-    double_word: tuple[int, int] = None
-    double_letter: tuple[int, int] = None
-    triple_letter: tuple[int, int] = None
+    double_word: tuple[int, int]|tuple = None
+    double_letter: tuple[int, int]|tuple = None
+    triple_letter: tuple[int, int]|tuple = None
 
 
 @app.post("/score/{replacements}", )
@@ -39,6 +39,9 @@ async def get_score(replacements : int, settings: GameSettings):
         raise HTTPException(status_code=400, detail="Matrix must be at least 4x4.")
 
     print(settings.matrix)
+    print(settings.double_word)
+    print(settings.double_letter)
+    print(settings.triple_letter)
 
     solver.set_game_properties(
         matrix=settings.matrix,

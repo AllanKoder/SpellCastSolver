@@ -1,4 +1,4 @@
-export const getScore = async (matrix, subsitutions = 0) => {
+export const getScore = async (matrix, subsitutions = 0, doubleLetter = [], doubleWord = [], tripleLetter = []) => {
     const result = {
         data: null,
         error: null
@@ -27,6 +27,9 @@ export const getScore = async (matrix, subsitutions = 0) => {
         },
         body: JSON.stringify({
           "matrix": matrix,
+          "double_word": doubleWord,
+          "double_letter": doubleLetter,
+          "triple_letter": tripleLetter,
         })
       });
       
