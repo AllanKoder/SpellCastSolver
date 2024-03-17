@@ -41,7 +41,7 @@ class SpellCastSolver:
         if len(output) == 0:
             return None
         
-        output.sort(key = lambda x: x[4], reverse=True)
+        output.sort(key = lambda x: x[4] - len(x[3]), reverse=True)
         return output
 
     def is_valid_cords(self, cords):
@@ -50,7 +50,7 @@ class SpellCastSolver:
         return True
 
     def search_at_tile(self, starting_cords, cords, current_word, visited, substitutions=0, changed=set()):
-        #return set of (word, path to get word, dictionary of cord to the changed letter, score)  
+        #return set of (startingCords, word, path to get word, dictionary of cord to the changed letter, score)  
         if cords in visited:
             return
     

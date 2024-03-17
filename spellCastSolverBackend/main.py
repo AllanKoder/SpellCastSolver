@@ -49,7 +49,7 @@ async def get_score(replacements : int, settings: GameSettings):
     result = solver.search_for_words(replacements)
 
     if result == None:
-        return { "word" : "NONE", "tiles":[], "replaced":[], "score": 0 }
+        return { "starting_tile" : [] ,"word" : "NONE", "tiles":[], "replaced":[], "score": 0 }
     
     starting_tile, word, tiles, replaced, score = result[0]
 

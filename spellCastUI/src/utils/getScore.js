@@ -35,7 +35,8 @@ export const getScore = async (matrix, subsitutions = 0) => {
       }
   
       const data = await response.json();
-  
+
+      console.log(data)
       result.data = data
       return result    
     } 
