@@ -83,7 +83,7 @@ class SpellCastChecker:
     
     def get_possible_letter_subs(self, prefix):
         #get the possible letters that can sub in for a valid prefix given a prefix
-        return self.prefix_sub_1_tree.get_next_letters(prefix[0:len(prefix)-1])
+        return self.prefix_sub_1_tree.get_next_letters(prefix)
 
     def visualize_sub_tree(self):
         self.prefix_sub_1_tree.visualize()
