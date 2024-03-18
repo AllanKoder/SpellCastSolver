@@ -44,11 +44,11 @@ def get_raw_score(word):
     for letter in word: s += scores[letter]
     return s 
 
-def get_letter_score(letter : str, cord: tuple[int,int], double_letter: set[tuple], triple_letter: set[tuple]):
+def get_letter_score(letter : str, cords: tuple[int,int], double_letter: set[tuple], triple_letter: set[tuple]):
     s = scores[letter]
-    if cord == double_letter:
+    if cords == double_letter:
         s *= 2
-    if cord == triple_letter:
+    if cords == triple_letter:
         s *= 3
     return s 
 
@@ -56,7 +56,9 @@ def get_final_score(score: int, traversal: set[tuple], double_word : tuple):
     double_multiplier = 1
     if double_word in traversal:
         double_multiplier = 2
-    final_score = score*double_multiplier + (0 if len(traversal) < 6 else 10) 
+    add_on = (0 if len(traversal) < 6 else 10) 
+    final_score = (score*double_multiplier) + add_on 
+    print(final_score, add_on, score*double_multiplier, score)
     return final_score
     
 wordlist = open(WORD_LIST).readlines()

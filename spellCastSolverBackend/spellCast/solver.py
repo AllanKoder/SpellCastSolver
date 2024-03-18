@@ -35,7 +35,12 @@ class SpellCastSolver:
         for y in range(len(self.matrix)):
             for x in range(len(self.matrix[y])):
                 letter = self.matrix[y][x]
-                self.search_at_tile((y,x), (y,x), letter, set(), subs)
+                score = get_letter_score(
+                                letter=letter,
+                                cords=(y,x),
+                                double_letter=self.double_letter,
+                                triple_letter=self.triple_letter)
+                self.search_at_tile((y,x), (y,x), letter, set(), subs, score=score)
         
         output = list(self.valid_words)
         if len(output) == 0:
@@ -51,38 +56,41 @@ class SpellCastSolver:
 
     def search_at_tile(self, starting_cords, cords, current_word, visited, substitutions=0, changed=set(), score = 0):
         #return set of (startingCords, word, path to get word, dictionary of cord to the changed letter, score)  
+        neighbours = [(-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1), (0, 1), (1,-1), (-1,-1)]
         if cords in visited:
             return
-    
-
-        # deal with substitutions
-        if substitutions > 0:
-            prefix_word = current_word[0:len(current_word)-1]
-            new_visited = visited.copy()
-            
-            for potential_letter in self.checker.get_possible_letter_subs(current_word):
-                new_current = prefix_word + potential_letter
-                new_changed = changed.copy()
-                new_changed.add(cords)
-                
-                new_score = score
-                new_score += get_letter_score(
-                    letter=potential_letter,
-                    cord=cords,
-                    double_letter=self.double_letter,
-                    triple_letter=self.triple_letter)
-                
-                self.search_at_tile(
-                                    starting_cords=starting_cords, 
-                                    cords=cords, 
-                                    current_word=new_current, 
-                                    visited=new_visited.copy(), 
-                                    substitutions=substitutions-1, 
-                                    changed=new_changed, 
-                                    score=new_score)
-                
         # deal with repeats
         visited.add(cords)
+    
+        # deal with substitutions
+        if substitutions > 0:
+                new_visited = visited.copy()
+                
+                for potential_letter in self.checker.get_possible_letter_subs(current_word):
+                    new_current = current_word + potential_letter                    
+                    
+                    for add_y, add_x in neighbours:
+                        new_score = score
+
+                        new_cords = (cords[0]+add_y, cords[1]+add_x)
+                        new_changed = changed.copy()
+                        new_changed.add(new_cords)
+
+                        if self.is_valid_cords(new_cords):
+                            new_score += get_letter_score(
+                                letter=potential_letter,
+                                cords=new_cords,
+                                double_letter=self.double_letter,
+                                triple_letter=self.triple_letter)
+                            self.search_at_tile(
+                                                starting_cords=starting_cords, 
+                                                cords=new_cords, 
+                                                current_word=new_current, 
+                                                visited=new_visited.copy(), 
+                                                substitutions=substitutions-1, 
+                                                changed=new_changed, 
+                                                score=new_score)
+                    
 
         if self.checker.is_prefix(current_word) == False:
             return
@@ -97,7 +105,6 @@ class SpellCastSolver:
             self.valid_words.add((tuple(starting_cords), str(current_word), tuple(path_taken), tuple(changed), int(current_score)))
 
 
-        neighbours = [(-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1), (0, 1), (1,-1), (-1,-1)]
         for add_y, add_x in neighbours:
             new_cords = (cords[0]+add_y, cords[1]+add_x)
 
@@ -110,7 +117,7 @@ class SpellCastSolver:
                 new_score = score
                 new_score += get_letter_score(
                     letter=new_letter,
-                    cord=cords,
+                    cords=new_cords,
                     double_letter=self.double_letter,
                     triple_letter=self.triple_letter)
 
