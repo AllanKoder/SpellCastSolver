@@ -4,8 +4,8 @@
 # for Scrabble game 
 #
 WORD_LIST = "spellCast/sowpods.txt"
-MINIMUM_GOOD_SCORE = 1
-MINIMUM_BETTER_SCORE = 1
+MINIMUM_GOOD_SCORE = 15
+MINIMUM_BETTER_SCORE = 30
 
 # set up a dictionary of points for each letter, to be used to calculate scores
 
@@ -58,7 +58,6 @@ def get_final_score(score: int, traversal: set[tuple], double_word : tuple):
         double_multiplier = 2
     add_on = (0 if len(traversal) < 6 else 10) 
     final_score = (score*double_multiplier) + add_on 
-    print(final_score, add_on, score*double_multiplier, score)
     return final_score
     
 wordlist = open(WORD_LIST).readlines()

@@ -85,6 +85,7 @@ function handleKeydown(event, row, col) {
       event.preventDefault();
       focusInput(row + 1, 1);
     }
+    emitMatrix()
   } else {
     // Handle arrow keys
     if (key === 'ArrowUp' && row > 1) {
