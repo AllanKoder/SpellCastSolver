@@ -4,12 +4,22 @@ import graphviz
 class PrefixNode:
     def __init__(self, value=""):
         self.value = value
+        self.best_priority_score = 0
+        self.parent = None
         self.pathing = {}
+        self.priority = 0
 
-    def get_or_create_child(self, letter):
+    def get_or_create_child(self, letter : str, score: int):
         if self.pathing.get(letter) == None:
-            self.pathing[letter] = PrefixNode(self.value + letter)
+            new_node = PrefixNode(self.value + letter)
+            self.pathing[letter] = new_node
+            
+            new_node.parent = self
+            new_node.priority = score
+
         return self.pathing[letter]
+    
+
     
     def get(self, letter):
         if self.pathing.get(letter) != None:
@@ -21,10 +31,18 @@ class PrefixTree:
     def __init__(self):
         self.root = PrefixNode()
 
-    def add(self, word: str):
+    def reprioritize(self, node):
+        score = node.priority
+        while node != None:
+            node.priority = max(score, node.priority)
+            node = node.parent
+
+    def add(self, word: str, score : int):
         currentNode = self.root
         for letter in word:
-            currentNode = currentNode.get_or_create_child(letter)
+            currentNode = currentNode.get_or_create_child(letter, score)
+        self.reprioritize(currentNode)
+
     
     def get(self, word: str):
         # either return true or false 
@@ -37,6 +55,18 @@ class PrefixTree:
 
         if currentNode == None: return False
         return currentNode.value == word
+    
+    def get_priority(self, word: str):
+        # return the priority
+        currentNode = self.root
+        createdString = ""
+        for letter in word:
+            if not currentNode: break
+            createdString += letter
+            currentNode = currentNode.get(letter)
+
+        if currentNode == None: return 0
+        return currentNode.priority
     
     def get_next_letters(self, word: str) -> list[str]:
         # return a list of letters
@@ -58,7 +88,7 @@ class PrefixTree:
     def _visualize_helper(self, node, dot):
         for letter, child in node.pathing.items():
             dot.node(child.value, label=child.value)
-            dot.edge(node.value, child.value, label=letter)
+            dot.edge(node.value, child.value, label=(f"{letter}, {child.priority}"))
             self._visualize_helper(child, dot)
 
 
@@ -70,9 +100,11 @@ class SpellCastChecker:
 
     def initializeRoots(self):
         for word in wordlist:
-            self.prefix_tree.add(word)
+            score = get_raw_score(word)
+            self.prefix_tree.add(word, score)
         for word in better_wordlist:
-            self.prefix_sub_1_tree.add(word)
+            score = get_raw_score(word)
+            self.prefix_sub_1_tree.add(word,score)
     
     def is_word(self, word):
         return word in wordlist
@@ -87,3 +119,6 @@ class SpellCastChecker:
 
     def visualize_sub_tree(self):
         self.prefix_sub_1_tree.visualize()
+
+    def get_priority(self, word):
+        return self.prefix_tree.get_priority(word)
