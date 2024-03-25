@@ -19,7 +19,8 @@ class PrefixNode:
 
         return self.pathing[letter]
     
-
+    def is_leaf_node(self):
+        return len(self.pathing) > 0
     
     def get(self, letter):
         if self.pathing.get(letter) != None:
@@ -43,7 +44,6 @@ class PrefixTree:
             currentNode = currentNode.get_or_create_child(letter, score)
         self.reprioritize(currentNode)
 
-    
     def get(self, word: str):
         # either return true or false 
         currentNode = self.root
@@ -52,21 +52,25 @@ class PrefixTree:
             if not currentNode: break
             createdString += letter
             currentNode = currentNode.get(letter)
-
+        return currentNode
+    
+    def can_get(self, word: str):
+        # either return true or false 
+        currentNode = self.get(word)
         if currentNode == None: return False
         return currentNode.value == word
     
     def get_priority(self, word: str):
         # return the priority
-        currentNode = self.root
-        createdString = ""
-        for letter in word:
-            if not currentNode: break
-            createdString += letter
-            currentNode = currentNode.get(letter)
-
+        currentNode = self.get(word)
         if currentNode == None: return 0
         return currentNode.priority
+    
+    def is_leaf(self, word: str):
+        # return the priority
+        currentNode = self.get(word)
+        if currentNode == None: return False
+        return len(currentNode.pathing) == 0
     
     def get_next_letters(self, word: str) -> list[str]:
         # return a list of letters
@@ -111,7 +115,10 @@ class SpellCastChecker:
     
     def is_prefix(self, prefix):
         #see if string is a valid prefix of a word
-        return self.prefix_tree.get(prefix)
+        return self.prefix_tree.can_get(prefix)
+    
+    def is_leaf_word(self, word):
+        return self.prefix_tree.is_leaf(word)
     
     def get_possible_letter_subs(self, prefix):
         #get the possible letters that can sub in for a valid prefix given a prefix
@@ -122,3 +129,6 @@ class SpellCastChecker:
 
     def get_priority(self, word):
         return self.prefix_tree.get_priority(word)
+    
+    def is_leaf_word(self, word):
+        return self.prefix_tree.is_leaf(word)

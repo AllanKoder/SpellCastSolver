@@ -1,4 +1,4 @@
-from spellCast.spellCast import get_final_score, get_letter_score
+from spellCast.spellCast import *
 from spellCast.spellCastChecker import SpellCastChecker
 from spellCast.heap import Heap
 
@@ -9,10 +9,15 @@ class SpellCastSolver:
         self.heap = Heap()
         self.valid_words = set()
         self.terminated = False
+        self.best_score = 0
+
         self.matrix = matrix
         self.double_word = ()
         self.double_letter = ()
         self.triple_letter = ()
+
+
+
         
     def set_game_properties(self, matrix=None, double_word=None, double_letter=None, triple_letter=None):
         if matrix is not None:
@@ -31,7 +36,8 @@ class SpellCastSolver:
         self.heap = Heap()
         self.valid_words = set()
         self.terminated = False
-
+        self.best_score = 0
+        
         for y in range(len(self.matrix)):
             for x in range(len(self.matrix[y])):
                 letter = self.matrix[y][x]
@@ -40,7 +46,7 @@ class SpellCastSolver:
                                 cords=(y,x),
                                 double_letter=self.double_letter,
                                 triple_letter=self.triple_letter)
-                priority = self.checker.get_priority(letter)
+                priority = self._determine_priority(letter, (y, x), set())
                 current_backtrack = {
                     "starting_cords": (y,x),
                     "cords": (y,x),
@@ -50,7 +56,7 @@ class SpellCastSolver:
                     "substitutions": subs,
                     "score": score
                 }
-                self.heap.push((priority, current_backtrack))
+                self.heap.push((priority, current_backtrack.copy()))
         
         while self.terminated == False and len(self.heap) > 0:
             self.search_for_best()
@@ -97,7 +103,6 @@ class SpellCastSolver:
                 
                 for potential_letter in self.checker.get_possible_letter_subs(current_word):
                     new_current = current_word + potential_letter                    
-                    new_priority = self.checker.get_priority(new_current)
 
                     for add_y, add_x in neighbours:
                         new_score = score
@@ -105,6 +110,8 @@ class SpellCastSolver:
                         new_cords = (cords[0]+add_y, cords[1]+add_x)
                         new_changed = changed.copy()
                         new_changed.add(new_cords)
+
+                        new_priority = self._determine_priority(new_current, new_cords, visited)
 
                         if self.is_valid_cords(new_cords):
                             new_score += get_letter_score(
@@ -130,7 +137,7 @@ class SpellCastSolver:
                             new_backtrack["current_word"] = new_current
                             new_backtrack["cords"] = new_cords
 
-                            self.heap.push((new_priority, new_backtrack))
+                            self.heap.push((new_priority, new_backtrack.copy()))
 
         if self.checker.is_prefix(current_word) == False:
             return
@@ -142,7 +149,31 @@ class SpellCastSolver:
                 traversal=path_taken,
                 double_word=self.double_word
                 )
+            
             self.valid_words.add((tuple(starting_cords), str(current_word), tuple(path_taken), tuple(changed), int(current_score)))
+            
+            if (self.checker.is_leaf_word(current_word)):
+                if (self._used_double_or_triple(visited) and 
+                    self._used_double_word(visited)):
+                    self.terminated = True
+                
+                elif (self._used_double_or_triple(visited) and 
+                      not self._used_double_word(visited) and 
+                      current_score * 2 <= self.best_score):
+                    self.terminated = True
+
+                elif (not self._used_double_or_triple(visited) and
+                      self._used_double_word(visited) and 
+                      current_score + 20 <= self.best_score):
+                    self.terminated = True
+
+                elif (not self._used_double_or_triple(visited) and
+                      not self._used_double_word(visited) and 
+                      current_score*2 + 20 <= self.best_score):
+                    self.terminated = True
+
+            self.best_score = max(self.best_score, current_score)
+
 
 
         for add_y, add_x in neighbours:
@@ -169,9 +200,22 @@ class SpellCastSolver:
                 new_backtrack["cords"] = new_cords
                 new_backtrack["changed"] = changed.copy()
 
-                new_priority = self.checker.get_priority(new_current)
+                new_priority = self._determine_priority(new_current, new_cords, new_visited)
 
-                self.heap.push((new_priority, new_backtrack))
-
+                self.heap.push((new_priority, new_backtrack.copy()))
+     
     def get_solutions(self):
         return list(self.valid_words)
+
+    def _used_double_or_triple(self, visited):
+        return (self.double_letter in visited or self.triple_letter in visited)
+    
+    def _used_double_word(self, visited):
+        return (self.double_word in visited)
+    
+    def _determine_priority(self, word, cords, visited):
+        double_multiplier = 1 
+        if self.double_word in visited or cords == self.double_word:
+            double_multiplier = 2
+        
+        return self.checker.get_priority(word)*double_multiplier
