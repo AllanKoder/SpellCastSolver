@@ -74,7 +74,18 @@ function handleKeydown(event, row, col) {
 
   if (isCharacterKey) {
     // Clear the current value and set the new one
-    this.matrix[row-1][col-1] = '';
+    this.matrix[row-1][col-1] = key;
+    if (col < 5)
+    {
+      event.preventDefault();
+      focusInput(row, col + 1);
+    }
+    else if (row < 5)
+    {
+      event.preventDefault();
+      focusInput(row + 1, 1);
+    }
+    emitMatrix()
   } else {
     // Handle arrow keys
     if (key === 'ArrowUp' && row > 1) {

@@ -58,7 +58,6 @@ def get_final_score(score: int, traversal: set[tuple], double_word : tuple):
         double_multiplier = 2
     add_on = (0 if len(traversal) < 6 else 10) 
     final_score = (score*double_multiplier) + add_on 
-    # print(final_score, add_on, score*double_multiplier, score)
     return final_score
     
 wordlist = open(WORD_LIST).readlines()
