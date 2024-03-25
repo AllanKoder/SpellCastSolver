@@ -1,19 +1,29 @@
 from spellCast.solver import SpellCastSolver
 from spellCast.spellCastChecker import *
 from spellCast.spellCast import *
+from spellCast.heap import Heap
 
 
-solver = SpellCastSolver()
 
-solver.set_game_properties(
-        matrix=[["q","u","e","a","a"],
-                ["e","a","a","a","a"],
-                ["h","a","a","a","a"],
-                ["c","a","a","a","a"],
-                ["a","a","a","a","a"]]
-        )
+print(get_raw_score("clows"))
+print(get_raw_score("panchax"))
+# solver = SpellCastChecker()
 
-solver.search_for_words(0)
-results = solver.get_solutions()
-for result in results:
-        print(results[1], results[4])
+# print(solver.is_leaf_word("ban"))
+# print(solver.is_leaf_word("banana"))
+
+# heap = Heap()
+
+# m = {
+#         "test": 1,
+#         "tes32":2,
+# }
+# heap.push((1, m))
+# heap.push((21, m))
+# heap.push((134, m))
+# heap.push((1324, m))
+
+# print(heap.pop())
+# print(heap.pop())
+# print(heap.pop())
+# print(heap.pop())
