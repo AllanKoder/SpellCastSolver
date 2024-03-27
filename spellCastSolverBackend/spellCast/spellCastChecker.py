@@ -1,5 +1,6 @@
 from spellCast.spellCast import *
 import graphviz
+from functools import lru_cache 
 
 class PrefixNode:
     def __init__(self, value=""):
@@ -44,6 +45,7 @@ class PrefixTree:
             currentNode = currentNode.get_or_create_child(letter, score)
         self.reprioritize(currentNode)
 
+    @lru_cache(maxsize = 256) 
     def get(self, word: str):
         # either return true or false 
         currentNode = self.root

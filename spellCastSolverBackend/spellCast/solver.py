@@ -46,9 +46,11 @@ class SpellCastSolver:
                                 cords=(y,x),
                                 double_letter=self.double_letter,
                                 triple_letter=self.triple_letter)
-                priority = self._determine_priority(letter, (y, x), set())
+                add_on = self._get_add_on((y,x), letter)
+                priority = self._determine_priority(letter, (y, x), set(), add_on)
                 current_backtrack = {
                     "starting_cords": (y,x),
+                    "add_on": add_on,
                     "cords": (y,x),
                     "current_word": letter,
                     "visited": set(),
@@ -93,25 +95,32 @@ class SpellCastSolver:
         current_word = current_backtrack["current_word"] 
         changed = current_backtrack["changed"] 
         score = current_backtrack["score"]
+        add_on = current_backtrack["add_on"]
         
         if cords in visited:
             return
         visited.add(cords)
 
+        # have we reached the best?
+        self._should_terminate(visited, priority)
+
         if substitutions > 0:
-                new_visited = visited.copy()
                 
                 for potential_letter in self.checker.get_possible_letter_subs(current_word):
                     new_current = current_word + potential_letter                    
 
+                    if self.checker.is_prefix(current_word) == False:
+                         continue
+                    
                     for add_y, add_x in neighbours:
+                        new_visited = type(visited)(visited)
+
                         new_score = score
 
                         new_cords = (cords[0]+add_y, cords[1]+add_x)
                         new_changed = changed.copy()
                         new_changed.add(new_cords)
 
-                        new_priority = self._determine_priority(new_current, new_cords, visited)
 
                         if self.is_valid_cords(new_cords):
                             new_score += get_letter_score(
@@ -119,19 +128,18 @@ class SpellCastSolver:
                                 cords=new_cords,
                                 double_letter=self.double_letter,
                                 triple_letter=self.triple_letter)
-                            '''
-                            self.search_at_tile(
-                                starting_cords=starting_cords, 
-                                cords=new_cords, 
-                                current_word=new_current, 
-                                visited=new_visited.copy(), 
-                                substitutions=substitutions-1, 
-                                changed=new_changed, 
-                                score=new_score)
-                            '''
-                            new_backtrack = current_backtrack.copy()
+
+                            new_addon = add_on
+                            if (add_on == (0,1)):
+                                new_addon = self._get_add_on(new_cords, potential_letter)
+
+                            new_priority = self._determine_priority(new_current, new_cords, visited, new_addon)
+    
+                            new_backtrack = {}
                             new_backtrack["score"] = new_score
-                            new_backtrack["visited"] = new_visited.copy()
+                            new_backtrack["add_on"] = new_addon
+                            new_backtrack["starting_cords"] = starting_cords
+                            new_backtrack["visited"] = new_visited
                             new_backtrack["substitutions"] = substitutions-1
                             new_backtrack["changed"] = new_changed.copy()
                             new_backtrack["current_word"] = new_current
@@ -143,7 +151,7 @@ class SpellCastSolver:
             return
         
         if self.checker.is_word(current_word):
-            path_taken = visited.copy()
+            path_taken = visited
             current_score = get_final_score(
                 score=score,
                 traversal=path_taken,
@@ -152,30 +160,15 @@ class SpellCastSolver:
             
             self.valid_words.add((tuple(starting_cords), str(current_word), tuple(path_taken), tuple(changed), int(current_score)))
             
-            if (self.checker.is_leaf_word(current_word)):
-                if (self._used_double_or_triple(visited) and 
-                    self._used_double_word(visited)):
-                    self.terminated = True
-                
-                elif (self._used_double_or_triple(visited) and 
-                      not self._used_double_word(visited) and 
-                      current_score * 2 <= self.best_score):
-                    self.terminated = True
-
-                elif (not self._used_double_or_triple(visited) and
-                      self._used_double_word(visited) and 
-                      current_score + 20 <= self.best_score):
-                    self.terminated = True
-
-                elif (not self._used_double_or_triple(visited) and
-                      not self._used_double_word(visited) and 
-                      current_score*2 + 20 <= self.best_score):
-                    self.terminated = True
-
+            #if (self.checker.is_leaf_word(current_word)):
             self.best_score = max(self.best_score, current_score)
+            '''
+                if (self._used_double_or_triple(visited) and 
+                        self._used_double_word(visited)):
+                    self.terminated = True
+            '''
 
-
-
+        # check the next step Moore neighborhood
         for add_y, add_x in neighbours:
             new_cords = (cords[0]+add_y, cords[1]+add_x)
 
@@ -183,8 +176,9 @@ class SpellCastSolver:
                 new_letter = self.matrix[new_cords[0]][new_cords[1]]
                 new_current = current_word+new_letter
 
-                new_visited = visited.copy()
-
+                if self.checker.is_prefix(current_word) == False:
+                    continue
+                    
                 new_score = score
                 new_score += get_letter_score(
                     letter=new_letter,
@@ -192,17 +186,41 @@ class SpellCastSolver:
                     double_letter=self.double_letter,
                     triple_letter=self.triple_letter)
             
-                new_backtrack = current_backtrack.copy()
+                new_visited = type(visited)(visited)
+
+                new_addon = add_on
+                if (add_on == (0,1)):
+                    new_addon = self._get_add_on(new_cords, new_letter)
+                
+                new_backtrack = {}
+                new_backtrack["starting_cords"] = starting_cords
                 new_backtrack["score"] = new_score
-                new_backtrack["visited"] = new_visited.copy()
+                new_backtrack["add_on"] = new_addon
+                new_backtrack["visited"] = new_visited
                 new_backtrack["substitutions"] = substitutions
                 new_backtrack["current_word"] = new_current
                 new_backtrack["cords"] = new_cords
                 new_backtrack["changed"] = changed.copy()
-
-                new_priority = self._determine_priority(new_current, new_cords, new_visited)
-
+                
+                new_priority = self._determine_priority(new_current, new_cords, new_visited, new_addon)
+                
                 self.heap.push((new_priority, new_backtrack.copy()))
+
+    def _should_terminate(self, visited, expected_score):
+        if (self._used_double_or_triple(visited) and 
+                      not self._used_double_word(visited) and 
+                      expected_score * 2 <= self.best_score):
+            self.terminated = True
+
+        elif (not self._used_double_or_triple(visited) and
+                      self._used_double_word(visited) and 
+                      expected_score + 32 <= self.best_score):
+            self.terminated = True
+
+        elif (not self._used_double_or_triple(visited) and
+                      not self._used_double_word(visited) and 
+                      expected_score*2 + 40 <= self.best_score):
+            self.terminated = True
      
     def get_solutions(self):
         return list(self.valid_words)
@@ -213,9 +231,16 @@ class SpellCastSolver:
     def _used_double_word(self, visited):
         return (self.double_word in visited)
     
-    def _determine_priority(self, word, cords, visited):
-        double_multiplier = 1 
-        if self.double_word in visited or cords == self.double_word:
+    def _get_add_on(self, cords, letter):
+        if cords == self.double_letter:
+            return (get_raw_score(letter), 2)
+        if cords == self.triple_letter:
+            return (get_raw_score(letter), 3)
+        return (0,1)
+    
+    def _determine_priority(self, word, cords, visited, addon = (0,1)):        
+        addition, multiplier = addon
+        double_multiplier = 1
+        if cords == self.double_word or self.double_word in visited:
             double_multiplier = 2
-        
-        return self.checker.get_priority(word)*double_multiplier
+        return (self.checker.get_priority(word) + (addition * multiplier)) * double_multiplier - addition
