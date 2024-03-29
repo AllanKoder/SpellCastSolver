@@ -4,7 +4,7 @@
 # for Scrabble game 
 #
 WORD_LIST = "spellCast/sowpods.txt"
-MINIMUM_GOOD_SCORE = 15
+MINIMUM_GOOD_SCORE = 5
 MINIMUM_BETTER_SCORE = 30
 
 # set up a dictionary of points for each letter, to be used to calculate scores

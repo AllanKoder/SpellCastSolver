@@ -1,7 +1,7 @@
 from spellCast.spellCast import *
 from spellCast.spellCastChecker import SpellCastChecker
 from spellCast.heap import Heap
-
+import time
 class SpellCastSolver:
     def __init__(self, matrix=None):
         self.checker = SpellCastChecker()
@@ -15,9 +15,7 @@ class SpellCastSolver:
         self.double_word = ()
         self.double_letter = ()
         self.triple_letter = ()
-
-
-
+        self.replacement_bonus = 24
         
     def set_game_properties(self, matrix=None, double_word=None, double_letter=None, triple_letter=None):
         if matrix is not None:
@@ -29,14 +27,17 @@ class SpellCastSolver:
             self.double_word = double_word
         if double_letter is not None:
             self.double_letter = double_letter
+            self.replacement_bonus = 24
         if triple_letter is not None:
             self.triple_letter = triple_letter
-
-    def search_for_words(self, subs: int = 0):
+            self.replacement_bonus = 40
+    def search_for_words(self, subs: int = 0, testingNovel = True):
         self.heap = Heap()
         self.valid_words = set()
         self.terminated = False
         self.best_score = 0
+
+        t0 = time.time()
         
         for y in range(len(self.matrix)):
             for x in range(len(self.matrix[y])):
@@ -46,28 +47,35 @@ class SpellCastSolver:
                                 cords=(y,x),
                                 double_letter=self.double_letter,
                                 triple_letter=self.triple_letter)
-                add_on = self._get_add_on((y,x), letter)
-                priority = self._determine_priority(letter, (y, x), set(), add_on)
-                current_backtrack = {
-                    "starting_cords": (y,x),
-                    "add_on": add_on,
-                    "cords": (y,x),
-                    "current_word": letter,
-                    "visited": set(),
-                    "changed": set(),
-                    "substitutions": subs,
-                    "score": score
-                }
-                self.heap.push((priority, current_backtrack.copy()))
+                if subs > 2 or testingNovel:
+                  add_on = self._get_add_on((y,x), letter)
+                  priority, bonus = self._determine_priority(letter, (y, x), set(), add_on)
+                  current_backtrack = {
+                      "starting_cords": (y,x),
+                      "add_on": add_on,
+                      "cords": (y,x),
+                      "current_word": letter,
+                      "visited": set(),
+                      "changed": set(),
+                      "substitutions": subs,
+                      "score": score
+                  }
+                  self.heap.push((priority, bonus, current_backtrack.copy()))
+                else:
+                  self._search_at_tile((y,x), (y,x), letter, set(), subs, score=score)
+
         
         while self.terminated == False and len(self.heap) > 0:
-            self.search_for_best()
+            self._search_for_best()
 
         output = list(self.valid_words)
         if len(output) == 0:
             return None
         
         output.sort(key = lambda x: x[4] - len(x[3]), reverse=True)
+        t1 = time.time()
+
+        print("duration for solving:", t1-t0, "seconds")
         return output
 
     def is_valid_cords(self, cords):
@@ -75,9 +83,88 @@ class SpellCastSolver:
             return False
         return True
 
-    def search_for_best(self):
+    def _search_at_tile(self, starting_cords, cords, current_word, visited, substitutions=0, changed=set(), score = 0):
+          #self, starting_cords, cords, current_word, visited, substitutions=0, changed=set(), score = 0
+
+          #return set of (startingCords, word, path to get word, dictionary of cord to the changed letter, score)  
+          neighbours = [(-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1), (0, 1), (1,-1), (-1,-1)]
+          if cords in visited:
+              return
+          # deal with repeats
+          visited.add(cords)
+      
+          # deal with substitutions
+          if substitutions > 0:
+                  new_visited = visited.copy()
+                  
+                  for potential_letter in self.checker.get_possible_letter_subs(current_word):
+                      new_current = current_word + potential_letter                    
+                      
+                      for add_y, add_x in neighbours:
+                          new_score = score
+
+                          new_cords = (cords[0]+add_y, cords[1]+add_x)
+                          new_changed = changed.copy()
+                          new_changed.add(new_cords)
+
+                          if self.is_valid_cords(new_cords):
+                              new_score += get_letter_score(
+                                  letter=potential_letter,
+                                  cords=new_cords,
+                                  double_letter=self.double_letter,
+                                  triple_letter=self.triple_letter)
+                              self._search_at_tile(
+                                                  starting_cords=starting_cords, 
+                                                  cords=new_cords, 
+                                                  current_word=new_current, 
+                                                  visited=new_visited.copy(), 
+                                                  substitutions=substitutions-1, 
+                                                  changed=new_changed.copy(), 
+                                                  score=new_score)
+                      
+
+          if self.checker.is_prefix(current_word) == False:
+              return
+          
+          if self.checker.is_word(current_word):
+              path_taken = visited.copy()
+              current_score = get_final_score(
+                  score=score,
+                  traversal=path_taken,
+                  double_word=self.double_word
+                  )
+              self.valid_words.add((tuple(starting_cords), str(current_word), tuple(path_taken), tuple(changed), int(current_score)))
+
+
+          for add_y, add_x in neighbours:
+              new_cords = (cords[0]+add_y, cords[1]+add_x)
+
+              if self.is_valid_cords(new_cords):
+                  new_letter = self.matrix[new_cords[0]][new_cords[1]]
+                  new_current = current_word+new_letter
+
+                  another_new_visited = visited.copy()
+
+                  new_score = score
+                  new_score += get_letter_score(
+                      letter=new_letter,
+                      cords=new_cords,
+                      double_letter=self.double_letter,
+                      triple_letter=self.triple_letter)
+
+                  self._search_at_tile(
+                      starting_cords=starting_cords, 
+                      cords=new_cords, 
+                      current_word=new_current, 
+                      visited=another_new_visited.copy(), 
+                      substitutions=substitutions, 
+                      changed=changed.copy(),
+                      score=new_score)
+                  # merge sets
+
+    def _search_for_best(self):
         neighbours = [(-1, 0), (1, 0), (-1, 1), (1, 1), (0, -1), (0, 1), (1,-1), (-1,-1)]
-        priority, current_backtrack = self.heap.pop()
+        priority, bonus, current_backtrack = self.heap.pop()
         
         '''
             "starting_cords": (y,x),
@@ -102,50 +189,49 @@ class SpellCastSolver:
         visited.add(cords)
 
         # have we reached the best?
-        self._should_terminate(visited, priority)
+        self._should_terminate(visited, priority, bonus)
 
         if substitutions > 0:
+            for potential_letter in self.checker.get_possible_letter_subs(current_word):
+                new_current = current_word + potential_letter                    
+
+                if self.checker.is_prefix(current_word) == False:
+                    continue
                 
-                for potential_letter in self.checker.get_possible_letter_subs(current_word):
-                    new_current = current_word + potential_letter                    
+                for add_y, add_x in neighbours:
+                    new_visited = type(visited)(visited)
 
-                    if self.checker.is_prefix(current_word) == False:
-                         continue
-                    
-                    for add_y, add_x in neighbours:
-                        new_visited = type(visited)(visited)
+                    new_score = score
 
-                        new_score = score
-
-                        new_cords = (cords[0]+add_y, cords[1]+add_x)
-                        new_changed = changed.copy()
-                        new_changed.add(new_cords)
+                    new_cords = (cords[0]+add_y, cords[1]+add_x)
+                    new_changed = changed.copy()
+                    new_changed.add(new_cords)
 
 
-                        if self.is_valid_cords(new_cords):
-                            new_score += get_letter_score(
-                                letter=potential_letter,
-                                cords=new_cords,
-                                double_letter=self.double_letter,
-                                triple_letter=self.triple_letter)
+                    if self.is_valid_cords(new_cords):
+                        new_score += get_letter_score(
+                            letter=potential_letter,
+                            cords=new_cords,
+                            double_letter=self.double_letter,
+                            triple_letter=self.triple_letter)
 
-                            new_addon = add_on
-                            if (add_on == (0,1)):
-                                new_addon = self._get_add_on(new_cords, potential_letter)
+                        new_addon = add_on
+                        if (add_on == (0,1)):
+                            new_addon = self._get_add_on(new_cords, potential_letter)
 
-                            new_priority = self._determine_priority(new_current, new_cords, visited, new_addon)
-    
-                            new_backtrack = {}
-                            new_backtrack["score"] = new_score
-                            new_backtrack["add_on"] = new_addon
-                            new_backtrack["starting_cords"] = starting_cords
-                            new_backtrack["visited"] = new_visited
-                            new_backtrack["substitutions"] = substitutions-1
-                            new_backtrack["changed"] = new_changed.copy()
-                            new_backtrack["current_word"] = new_current
-                            new_backtrack["cords"] = new_cords
+                        new_priority, new_bonus = self._determine_priority(new_current, new_cords, visited, new_addon)
 
-                            self.heap.push((new_priority, new_backtrack.copy()))
+                        new_backtrack = {}
+                        new_backtrack["score"] = new_score
+                        new_backtrack["add_on"] = new_addon
+                        new_backtrack["starting_cords"] = starting_cords
+                        new_backtrack["visited"] = new_visited
+                        new_backtrack["substitutions"] = substitutions-1
+                        new_backtrack["changed"] = new_changed.copy()
+                        new_backtrack["current_word"] = new_current
+                        new_backtrack["cords"] = new_cords
+
+                        self.heap.push((new_priority, new_bonus, new_backtrack.copy()))
 
         if self.checker.is_prefix(current_word) == False:
             return
@@ -202,24 +288,21 @@ class SpellCastSolver:
                 new_backtrack["cords"] = new_cords
                 new_backtrack["changed"] = changed.copy()
                 
-                new_priority = self._determine_priority(new_current, new_cords, new_visited, new_addon)
+                new_priority, new_bonus = self._determine_priority(new_current, new_cords, new_visited, new_addon)
                 
-                self.heap.push((new_priority, new_backtrack.copy()))
+                self.heap.push((new_priority, new_bonus, new_backtrack.copy()))
 
-    def _should_terminate(self, visited, expected_score):
-        if (self._used_double_or_triple(visited) and 
-                      not self._used_double_word(visited) and 
-                      expected_score * 2 <= self.best_score):
-            self.terminated = True
+    def _should_terminate(self, visited, expected_score, expected_length):
+        bonus_length = 10 if expected_length >= 6 else 0
 
-        elif (not self._used_double_or_triple(visited) and
+        if (not self._used_double_or_triple(visited) and
                       self._used_double_word(visited) and 
-                      expected_score + 32 <= self.best_score):
+                      expected_score + self.replacement_bonus + 10 - bonus_length <= self.best_score):
             self.terminated = True
 
-        elif (not self._used_double_or_triple(visited) and
+        if (not self._used_double_or_triple(visited) and
                       not self._used_double_word(visited) and 
-                      expected_score*2 + 40 <= self.best_score):
+                      (expected_score-bonus_length)*2 + self.replacement_bonus <= self.best_score):
             self.terminated = True
      
     def get_solutions(self):
@@ -243,4 +326,10 @@ class SpellCastSolver:
         double_multiplier = 1
         if cords == self.double_word or self.double_word in visited:
             double_multiplier = 2
-        return (self.checker.get_priority(word) + (addition * multiplier)) * double_multiplier - addition
+        node = self.checker.get(word) 
+        priority = 0
+        bonus = 0
+        if node != None:
+          priority = node.priority
+          bonus = 10 if len(node.value) >= 6 else 0
+        return ((priority + (addition * multiplier)) * double_multiplier - addition + bonus, bonus)

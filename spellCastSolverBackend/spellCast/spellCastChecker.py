@@ -131,6 +131,9 @@ class SpellCastChecker:
 
     def get_priority(self, word):
         return self.prefix_tree.get_priority(word)
+  
+    def get(self, word):
+      return self.prefix_tree.get(word)
     
     def is_leaf_word(self, word):
         return self.prefix_tree.is_leaf(word)
