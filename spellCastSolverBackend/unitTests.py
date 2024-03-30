@@ -65,10 +65,10 @@ class TestSpellCastSolver(unittest.TestCase):
             double_letter=double_letter,
             double_word=double_word
         )
-        expected = solver.search_for_words(subs=subs)
+        expected = solver.search_for_words(subs=subs, BruteForce=True, testingNovel=False)
         _, expected_word, _, _, expected_score = expected[0]
 
-        actual = solver.search_for_words(subs=subs, testingNovel=True)
+        actual = solver.search_for_words(subs=subs, testingNovel=True, BruteForce=False)
         _, actual_word, _, _, actual_score = actual[0]
         return expected_score,actual_score
         
@@ -139,7 +139,7 @@ class TestSpellCastSolver(unittest.TestCase):
 
     def test_two_substituion_same_three(self):
         expected_score, actual_score = self.bruteforce_vs_heap(
-            matrix=[['Q', 'W', 'D', 'S', 'D'], ['G', 'N', 'Z', 'S', 'A'], ['J', 'B', 'E', 'F', 'S'], ['D', 'X', 'L', 'A', 'S'], ['N', 'G', 'N', 'E', 'F']],
+            matrix=[['A', 'E', 'A', 'V', 'C'], ['G', 'N', 'Z', 'S', 'A'], ['J', 'B', 'E', 'F', 'S'], ['D', 'X', 'L', 'A', 'S'], ['N', 'G', 'N', 'E', 'F']],
             triple_letter=(2,1),
             double_word=(2,3),
             subs=2
@@ -149,7 +149,11 @@ class TestSpellCastSolver(unittest.TestCase):
 
     def test_two_substituion_same_four(self):
         expected_score, actual_score = self.bruteforce_vs_heap(
-            matrix=[['Q', 'W', 'D', 'S', 'D'], ['Z', 'Z', 'X', 'Z', 'A'], ['A', 'B', 'Y', 'V', 'S'], ['D', 'Z', 'A', 'Z', 'S'], ['N', 'S', 'N', 'E', 'F']],
+            matrix=[['Q', 'W', 'D', 'S', 'D'], 
+                    ['Z', 'Z', 'X', 'Z', 'A'], 
+                    ['A', 'B', 'Y', 'V', 'S'], 
+                    ['D', 'Z', 'A', 'Z', 'S'], 
+                    ['N', 'S', 'N', 'E', 'F']],
             triple_letter=(2,1),
             double_word=(2,3),
             subs=2
@@ -167,6 +171,48 @@ class TestSpellCastSolver(unittest.TestCase):
 
         self.assertEqual(expected_score, actual_score, "should be same score")
 
+    def test_two_substituion_same_six(self):
+        expected_score, actual_score = self.bruteforce_vs_heap(
+            matrix=[['A', 'S', 'H', 'W', 'B'], ['J', 'A', 'K', 'J', 'D'], ['H', 'F', 'A', 'W', 'B'], ['B', 'E', 'F', 'A', 'G'], ['I', 'J', 'S', 'D', 'Z']],
+            double_word=(3,3),
+            double_letter=(1,1),
+            subs=2
+        )
+
+        self.assertEqual(expected_score, actual_score, "should be same score")
+
+    def test_two_substituion_same_seven(self):
+        expected_score, actual_score = self.bruteforce_vs_heap(
+            matrix=[['c', 'v', 'v', 'i', 'u'], ['s', 'd', 'j', 'l', 'd'], ['H', 'a', 's', 'f', 'g'], ['i', 'h', 'j', 'j', 'G'], ['e', 'r', 'S', 't', 'w']],
+            double_word=(4,0),
+            double_letter=(1,4),
+            subs=2
+        )
+
+        self.assertEqual(expected_score, actual_score, "should be same score")
+
+
+
+    def test_three_substituion_same_one(self):
+        expected_score, actual_score = self.bruteforce_vs_heap(
+            matrix=[['A', 'S', 'H', 'W', 'B'], ['J', 'A', 'K', 'J', 'D'], ['H', 'F', 'A', 'W', 'B'], ['B', 'E', 'F', 'A', 'G'], ['I', 'J', 'S', 'D', 'Z']],
+            double_word=(3,3),
+            double_letter=(1,1),
+            subs=3
+        )
+
+        self.assertEqual(expected_score, actual_score, "should be same score")
+
+    def test_three_substituion_same_two(self):
+        expected_score, actual_score = self.bruteforce_vs_heap(
+            matrix=[['c', 'v', 'v', 'i', 'u'], ['s', 'd', 'j', 'l', 'd'], ['H', 'a', 's', 'f', 'g'], ['i', 'h', 'j', 'j', 'G'], ['e', 'r', 'S', 't', 'w']],
+            double_word=(4,0),
+            double_letter=(1,4),
+            subs=3
+        )
+
+        self.assertEqual(expected_score, actual_score, "should be same score")
+
 
 if __name__ == '__main__':
-  unittest.main()
+  unittest.main(failfast=True)

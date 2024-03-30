@@ -1,3 +1,4 @@
+from typing import Self
 from spellCast.spellCast import *
 from spellCast.spellCastChecker import SpellCastChecker
 from spellCast.heap import Heap
@@ -16,8 +17,9 @@ class SpellCastSolver:
         self.double_letter = ()
         self.triple_letter = ()
         self.replacement_bonus = 24
+        self.total_subs = 0
         
-    def set_game_properties(self, matrix=None, double_word=None, double_letter=None, triple_letter=None):
+    def set_game_properties(self, matrix=None, double_word=(), double_letter=(), triple_letter=()):
         if matrix is not None:
             for y in range(len(matrix)):
                 for x in range(len(matrix[y])):
@@ -31,12 +33,14 @@ class SpellCastSolver:
         if triple_letter is not None:
             self.triple_letter = triple_letter
             self.replacement_bonus = 40
-    def search_for_words(self, subs: int = 0, testingNovel = True):
+        
+    def search_for_words(self, subs: int = 0, testingNovel = True, BruteForce = False):
         self.heap = Heap()
         self.valid_words = set()
         self.terminated = False
         self.best_score = 0
-
+        self.total_subs = subs
+        
         t0 = time.time()
         
         for y in range(len(self.matrix)):
@@ -47,7 +51,7 @@ class SpellCastSolver:
                                 cords=(y,x),
                                 double_letter=self.double_letter,
                                 triple_letter=self.triple_letter)
-                if subs > 2 or testingNovel:
+                if (subs > 2 and not BruteForce) or testingNovel:
                   add_on = self._get_add_on((y,x), letter)
                   priority, bonus = self._determine_priority(letter, (y, x), set(), add_on)
                   current_backtrack = {
@@ -65,7 +69,7 @@ class SpellCastSolver:
                   self._search_at_tile((y,x), (y,x), letter, set(), subs, score=score)
 
         
-        while self.terminated == False and len(self.heap) > 0:
+        while not self.terminated and len(self.heap) > 0:
             self._search_for_best()
 
         output = list(self.valid_words)
@@ -123,7 +127,7 @@ class SpellCastSolver:
                                                   score=new_score)
                       
 
-          if self.checker.is_prefix(current_word) == False:
+          if not self.checker.is_prefix(current_word):
               return
           
           if self.checker.is_word(current_word):
@@ -189,7 +193,7 @@ class SpellCastSolver:
         visited.add(cords)
 
         # have we reached the best?
-        self._should_terminate(visited, priority, bonus)
+        self._should_terminate(visited, priority, bonus, current_word)
 
         if substitutions > 0:
             for potential_letter in self.checker.get_possible_letter_subs(current_word):
@@ -233,7 +237,7 @@ class SpellCastSolver:
 
                         self.heap.push((new_priority, new_bonus, new_backtrack.copy()))
 
-        if self.checker.is_prefix(current_word) == False:
+        if not self.checker.is_prefix(current_word):
             return
         
         if self.checker.is_word(current_word):
@@ -262,7 +266,7 @@ class SpellCastSolver:
                 new_letter = self.matrix[new_cords[0]][new_cords[1]]
                 new_current = current_word+new_letter
 
-                if self.checker.is_prefix(current_word) == False:
+                if not self.checker.is_prefix(current_word):
                     continue
                     
                 new_score = score
@@ -292,17 +296,23 @@ class SpellCastSolver:
                 
                 self.heap.push((new_priority, new_bonus, new_backtrack.copy()))
 
-    def _should_terminate(self, visited, expected_score, expected_length):
+    def _should_terminate(self, visited, expected_score, expected_length, word):
         bonus_length = 10 if expected_length >= 6 else 0
 
         if (not self._used_double_or_triple(visited) and
                       self._used_double_word(visited) and 
-                      expected_score + self.replacement_bonus + 10 - bonus_length <= self.best_score):
+                      expected_score - 2*bonus_length + self.replacement_bonus*(self.total_subs+1) <= self.best_score):
+            print("top")
+            print(visited)
+            print(word)
             self.terminated = True
 
         if (not self._used_double_or_triple(visited) and
                       not self._used_double_word(visited) and 
-                      (expected_score-bonus_length)*2 + self.replacement_bonus <= self.best_score):
+                      (expected_score-bonus_length)*2 + self.replacement_bonus*self.total_subs <= self.best_score):
+            print("bottom")
+            print(visited)
+            print(word)
             self.terminated = True
      
     def get_solutions(self):
