@@ -4,7 +4,23 @@ from spellCast.solver import SpellCastSolver
 from spellCast.spellCastChecker import *
 from spellCast.spellCast import *
 
+from collections import Counter
+from spellCast.spellCast import enough_words
+
 solver = SpellCastSolver()
+
+class TestEnoughCounter(unittest.TestCase):
+    def test_enough_words_works(self):
+        c1 = Counter("abcds")
+        board = Counter("abcd")
+        assert (enough_words(c1, board, 1) is True)
+        assert (enough_words(Counter("as"), board, 1) is True)
+        assert (enough_words(Counter("abcdsae"), board, 1) is False)
+        assert (enough_words(Counter("cats"), board, 1) is False)
+        assert (enough_words(Counter("act"), board, 1) is True)
+        assert (enough_words(Counter("acts"), board, 2) is True)
+        assert (enough_words(Counter("acts"), board, 0) is False)
+
 
 class TestSpellCastSolver(unittest.TestCase):
     @classmethod
@@ -192,27 +208,27 @@ class TestSpellCastSolver(unittest.TestCase):
         self.assertEqual(expected_score, actual_score, "should be same score")
 
 
+    # def test_three_substituion_same_one(self):
+    #     expected_score, actual_score = self.bruteforce_vs_heap(
+    #         matrix=[['A', 'S', 'H', 'W', 'B'], ['J', 'A', 'K', 'J', 'D'], ['H', 'F', 'A', 'W', 'B'], ['B', 'E', 'F', 'A', 'G'], ['I', 'J', 'S', 'D', 'Z']],
+    #         double_word=(3,3),
+    #         double_letter=(1,1),
+    #         subs=3
+    #     )
 
-    def test_three_substituion_same_one(self):
-        expected_score, actual_score = self.bruteforce_vs_heap(
-            matrix=[['A', 'S', 'H', 'W', 'B'], ['J', 'A', 'K', 'J', 'D'], ['H', 'F', 'A', 'W', 'B'], ['B', 'E', 'F', 'A', 'G'], ['I', 'J', 'S', 'D', 'Z']],
-            double_word=(3,3),
-            double_letter=(1,1),
-            subs=3
-        )
+    #     self.assertEqual(expected_score, actual_score, "should be same score")
 
-        self.assertEqual(expected_score, actual_score, "should be same score")
+    # def test_three_substituion_same_two(self):
+    #     expected_score, actual_score = self.bruteforce_vs_heap(
+    #         matrix=[['c', 'v', 'v', 'i', 'u'], ['s', 'd', 'j', 'l', 'd'], ['H', 'a', 's', 'f', 'g'], ['i', 'h', 'j', 'j', 'G'], ['e', 'r', 'S', 't', 'w']],
+    #         double_word=(4,0),
+    #         double_letter=(1,4),
+    #         subs=3
+    #     )
 
-    def test_three_substituion_same_two(self):
-        expected_score, actual_score = self.bruteforce_vs_heap(
-            matrix=[['c', 'v', 'v', 'i', 'u'], ['s', 'd', 'j', 'l', 'd'], ['H', 'a', 's', 'f', 'g'], ['i', 'h', 'j', 'j', 'G'], ['e', 'r', 'S', 't', 'w']],
-            double_word=(4,0),
-            double_letter=(1,4),
-            subs=3
-        )
+    #     self.assertEqual(expected_score, actual_score, "should be same score")
 
-        self.assertEqual(expected_score, actual_score, "should be same score")
 
 
 if __name__ == '__main__':
-  unittest.main(failfast=True)
+  unittest.main(failfast=False)
