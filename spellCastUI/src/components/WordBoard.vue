@@ -36,7 +36,7 @@ const props = defineProps({
   tripleLetterTile: String,
 });
 
-const matrix = ref(Array(5).fill().map(() => Array(5).fill('a')));
+const matrix = ref(Array(5).fill().map(() => Array(5).fill('')));
 const coloredUsedTiles = ref(props.wordTiles);
 const coloredStartingTile = ref(props.startingTile);
 const coloredReplacedTiles = ref(props.replaced);

@@ -1,5 +1,6 @@
 from spellCast.spellCast import *
 import graphviz
+from functools import lru_cache 
 
 class PrefixNode:
     def __init__(self, value=""):
@@ -44,6 +45,7 @@ class PrefixTree:
             currentNode = currentNode.get_or_create_child(letter, score)
         self.reprioritize(currentNode)
 
+    @lru_cache(maxsize = 256) 
     def get(self, word: str):
         # either return true or false 
         currentNode = self.root
@@ -99,7 +101,9 @@ class PrefixTree:
 class SpellCastChecker:
     def __init__(self):
         self.prefix_tree = PrefixTree()
-        self.prefix_sub_1_tree = PrefixTree()
+        self.prefix_used_sub_tree = PrefixTree()
+        self.prefix_sub_tree = PrefixTree()
+        self.prefix_good_tree = PrefixTree()
         self.initializeRoots()
 
     def initializeRoots(self):
@@ -108,27 +112,41 @@ class SpellCastChecker:
             self.prefix_tree.add(word, score)
         for word in better_wordlist:
             score = get_raw_score(word)
-            self.prefix_sub_1_tree.add(word,score)
+            self.prefix_sub_tree.add(word,score)
+
+    def create_good_tree(self, board : Counter, subs=0):
+        self.prefix_good_tree = PrefixTree()
+        new_wordlist = get_possible_wordlist(board=board, subs=subs)
+        for word in new_wordlist:
+            score = get_raw_score(word)
+            self.prefix_good_tree.add(word, score)
+        self.prefix_used_sub_tree = self.prefix_good_tree
     
+    def stick_with_basic_tree(self):
+        self.prefix_used_sub_tree = self.prefix_sub_tree
+
     def is_word(self, word):
         return word in wordlist
     
     def is_prefix(self, prefix):
         #see if string is a valid prefix of a word
-        return self.prefix_tree.can_get(prefix)
+        return self.prefix_used_sub_tree.can_get(prefix)
     
     def is_leaf_word(self, word):
-        return self.prefix_tree.is_leaf(word)
+        return self.prefix_used_sub_tree.is_leaf(word)
     
     def get_possible_letter_subs(self, prefix):
         #get the possible letters that can sub in for a valid prefix given a prefix
-        return self.prefix_sub_1_tree.get_next_letters(prefix)
+        return self.prefix_used_sub_tree.get_next_letters(prefix)
 
     def visualize_sub_tree(self):
-        self.prefix_sub_1_tree.visualize()
+        self.prefix_used_sub_tree.visualize()
 
     def get_priority(self, word):
-        return self.prefix_tree.get_priority(word)
+        return self.prefix_used_sub_tree.get_priority(word)
+  
+    def get(self, word):
+      return self.prefix_used_sub_tree.get(word)
     
     def is_leaf_word(self, word):
-        return self.prefix_tree.is_leaf(word)
+        return self.prefix_used_sub_tree.is_leaf(word)
