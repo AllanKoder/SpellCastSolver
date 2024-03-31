@@ -63,9 +63,10 @@ def get_final_score(score: int, traversal: set[tuple], double_word : tuple):
     final_score = (score*double_multiplier) + add_on 
     return final_score
     
-wordlist = open(WORD_LIST).readlines()
+file_wordlist = open(WORD_LIST)
 # Get rid of newlines
-wordlist = set([word.lower().strip() for word in wordlist if get_raw_score(word) >= MINIMUM_GOOD_SCORE])
+wordlist = set([word.lower().strip() for word in file_wordlist.readlines() if get_raw_score(word) >= MINIMUM_GOOD_SCORE])
+file_wordlist.close()
 
 better_wordlist = set([word for word in wordlist if get_raw_score(word) >= MINIMUM_BETTER_SCORE])
 counter_wordlist = [(Counter(word),word) for word in better_wordlist]

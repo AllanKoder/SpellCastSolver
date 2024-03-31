@@ -19,8 +19,6 @@ class SpellCastSolver:
         self.replacement_bonus = 24
         self.total_subs = 0
 
-        self.max_scores = []
-        self.actual_scores = []
         self.game_board_counter = Counter([])
 
     def set_game_properties(self, matrix=None, double_word=(), double_letter=(), triple_letter=()):
@@ -127,12 +125,6 @@ class SpellCastSolver:
         t1 = time.time()
 
         print("duration for solving:", t1-t0, "seconds")
-
-        f = open("maxscores.txt", "w")
-        f.write(str(self.max_scores))
-        f.close()
-        f = open("actualscores.txt", "w")
-        f.write(str(self.actual_scores))
         
         return output
 
@@ -353,24 +345,14 @@ class SpellCastSolver:
     def _should_terminate(self, visited, expected_score, expected_length, word):
         bonus_length_score = 10 if expected_length >= 6 else 0
         expected_score_without_bonus = expected_score - bonus_length_score
-        self.actual_scores.append(expected_score)
-        self.max_scores.append(self.best_score)
 
-        if (not self._used_double_or_triple(visited) and
-                      self._used_double_word(visited) and
-                      expected_score + self.replacement_bonus + 24 + bonus_length_score <= self.best_score):
-            # this constant can change
-            print("top")
-            print(visited)
-            print(word)
-            print(self.best_score)
-            print("gains", expected_score + self.replacement_bonus )
-            self.terminated = True
+        # if (not self._used_double_or_triple(visited) and
+        #               self._used_double_word(visited) and
+        #               expected_score + self.replacement_bonus + 24 + bonus_length_score <= self.best_score):
+        #     # this constant can change for more speed over accuracy
+        #     self.terminated = True
 
         if ((expected_score_without_bonus)*2 + bonus_length_score + self.replacement_bonus <= self.best_score):
-            print("bottom")
-            print(visited)
-            print(word)
             self.terminated = True
 
     def get_solutions(self):
