@@ -18,7 +18,17 @@ Using a heap and priority prefix tree, where prefixes that lead to a higher word
 
 In this diagram, we have a example of early stopping. There can be other heuristics added to this, where if we reach too small of a slope, we can stop the search.
 
-
+### How to run:
+**For Backend:**
+```
+cd spellCastSolverBackend
+py -m uvicorn main:app
+```
+**For Frontend:**
+```
+cd spellCastUI
+npm run dev
+```
 
 ### Features:
 - up to 4 substitions
