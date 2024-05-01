@@ -31,9 +31,11 @@ npm run dev
 ```
 
 ### Features:
-- up to 4 substitions
-- fast
-- clean and easy UI
+- Up to 4 substitions
+- Very fast for competitive gameplay
+- Clean and easy UI
+- Can edit the margin of error for higher speed
+- Has a higher average case time complexity than a bruteforce prefix tree search.
 
 
 ### Potential Improvements:
