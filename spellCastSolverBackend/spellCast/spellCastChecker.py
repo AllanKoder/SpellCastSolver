@@ -55,13 +55,15 @@ class PrefixTree:
             createdString += letter
             currentNode = currentNode.get(letter)
         return currentNode
-    
+
+    @lru_cache(maxsize = 256) 
     def can_get(self, word: str):
         # either return true or false 
         currentNode = self.get(word)
         if currentNode == None: return False
         return currentNode.value == word
     
+    @lru_cache(maxsize = 256) 
     def get_priority(self, word: str):
         # return the priority
         currentNode = self.get(word)
@@ -74,6 +76,7 @@ class PrefixTree:
         if currentNode == None: return False
         return len(currentNode.pathing) == 0
     
+    @lru_cache(maxsize = 256) 
     def get_next_letters(self, word: str) -> list[str]:
         # return a list of letters
         currentNode = self.root
@@ -124,10 +127,12 @@ class SpellCastChecker:
     
     def stick_with_basic_tree(self):
         self.prefix_used_sub_tree = self.prefix_sub_tree
-
+    
+    @lru_cache(None) 
     def is_word(self, word):
         return word in wordlist
     
+    @lru_cache(None)  
     def is_prefix(self, prefix):
         #see if string is a valid prefix of a word
         return self.prefix_used_sub_tree.can_get(prefix)
@@ -135,16 +140,19 @@ class SpellCastChecker:
     def is_leaf_word(self, word):
         return self.prefix_used_sub_tree.is_leaf(word)
     
+    @lru_cache(None)
     def get_possible_letter_subs(self, prefix):
         #get the possible letters that can sub in for a valid prefix given a prefix
         return self.prefix_used_sub_tree.get_next_letters(prefix)
 
     def visualize_sub_tree(self):
         self.prefix_used_sub_tree.visualize()
-
+    
+    @lru_cache(None)  
     def get_priority(self, word):
         return self.prefix_used_sub_tree.get_priority(word)
-  
+    
+    @lru_cache(None)  
     def get(self, word):
       return self.prefix_used_sub_tree.get(word)
     

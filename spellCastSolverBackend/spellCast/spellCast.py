@@ -8,7 +8,7 @@ from collections import Counter
 
 WORD_LIST = "spellCast/sowpods.txt"
 MINIMUM_GOOD_SCORE = 5
-MINIMUM_BETTER_SCORE = 5
+MINIMUM_BETTER_SCORE = 15
 
 # set up a dictionary of points for each letter, to be used to calculate scores
 
@@ -69,6 +69,7 @@ wordlist = set([word.lower().strip() for word in file_wordlist.readlines() if ge
 file_wordlist.close()
 
 better_wordlist = set([word for word in wordlist if get_raw_score(word) >= MINIMUM_BETTER_SCORE])
+
 counter_wordlist = [(Counter(word),word) for word in better_wordlist]
 
 
@@ -76,7 +77,7 @@ def get_possible_wordlist(board: Counter, subs: int = 0):
     output = []
     saved = 0
     for word_counter, word in counter_wordlist:
-        if (enough_words(word_counter, board)):
+        if (enough_words(word_counter, board, subs)):
             output.append(word)
         else:
             saved+=1

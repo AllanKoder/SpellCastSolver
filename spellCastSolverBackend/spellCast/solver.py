@@ -3,6 +3,12 @@ from spellCast.spellCast import *
 from spellCast.spellCastChecker import SpellCastChecker
 from spellCast.heap import Heap
 import time
+
+# margin of error for solving words with 3 subs
+MARGIN_OF_ERROR_3 = 10
+
+# margin of error for solving words with 4 subs
+MARGIN_OF_ERROR_4 = 15
 class SpellCastSolver:
     def __init__(self, matrix=None):
         self.checker = SpellCastChecker()
@@ -43,9 +49,17 @@ class SpellCastSolver:
     def search_for_words(self, subs: int = 0, testingNovel = False, BruteForce = False):
         t0 = time.time()
 
+        new_tree0 = time.time()
+
         self.heap = Heap()
         self.valid_words = set()
         self.terminated = False
+        
+        self.margin_of_error = 0
+        if subs == 3:    
+          self.margin_of_error = MARGIN_OF_ERROR_3 
+        elif subs == 4:    
+          self.margin_of_error = MARGIN_OF_ERROR_4
 
         if (subs >= 1):
             self.checker.create_good_tree(self.game_board_counter, subs)
@@ -57,6 +71,8 @@ class SpellCastSolver:
         self.total_subs = subs
         self.best_score = 0
 
+        new_tree1 = time.time()
+        print("duration for new tree:", new_tree1-new_tree0, "seconds")
 
         for y in range(len(self.matrix)):
             for x in range(len(self.matrix[y])):
@@ -346,11 +362,12 @@ class SpellCastSolver:
         bonus_length_score = 10 if expected_length >= 6 else 0
         expected_score_without_bonus = expected_score - bonus_length_score
 
-        # if (not self._used_double_or_triple(visited) and
-        #               self._used_double_word(visited) and
-        #               expected_score + self.replacement_bonus + 24 + bonus_length_score <= self.best_score):
-        #     # this constant can change for more speed over accuracy
-        #     self.terminated = True
+        if (not self._used_double_or_triple(visited) and
+                      self._used_double_word(visited) and
+                      expected_score + self.replacement_bonus + 24-self.margin_of_error + bonus_length_score <= self.best_score):
+            # this constant can change for more speed over accuracy
+            self.terminated = True
+            print("terminated here")
 
         if ((expected_score_without_bonus)*2 + bonus_length_score + self.replacement_bonus <= self.best_score):
             self.terminated = True

@@ -10,7 +10,7 @@ from spellCast.spellCast import enough_words
 solver = SpellCastSolver()
 
 class TestEnoughCounter(unittest.TestCase):
-    def test_enough_words_works(self):
+    def test_enough_words_works_1(self):
         c1 = Counter("abcds")
         board = Counter("abcd")
         assert (enough_words(c1, board, 1) is True)
@@ -20,6 +20,10 @@ class TestEnoughCounter(unittest.TestCase):
         assert (enough_words(Counter("act"), board, 1) is True)
         assert (enough_words(Counter("acts"), board, 2) is True)
         assert (enough_words(Counter("acts"), board, 0) is False)
+    def test_enough_words_works_2(self):
+        c1 = Counter("cats")
+        board = Counter("zzzz")
+        assert (enough_words(c1, board, 4) is True)
 
 
 class TestSpellCastSolver(unittest.TestCase):
