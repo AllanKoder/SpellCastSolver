@@ -3,6 +3,9 @@ from spellCast.spellCast import *
 from spellCast.spellCastChecker import SpellCastChecker
 from spellCast.heap import Heap
 import time
+
+# increase this for increased speed at cost of accuracy
+MARGIN_OF_ERROR = 5
 class SpellCastSolver:
     def __init__(self, matrix=None):
         self.checker = SpellCastChecker()
@@ -345,12 +348,13 @@ class SpellCastSolver:
     def _should_terminate(self, visited, expected_score, expected_length, word):
         bonus_length_score = 10 if expected_length >= 6 else 0
         expected_score_without_bonus = expected_score - bonus_length_score
-
-        # if (not self._used_double_or_triple(visited) and
-        #               self._used_double_word(visited) and
-        #               expected_score + self.replacement_bonus + 24 + bonus_length_score <= self.best_score):
-        #     # this constant can change for more speed over accuracy
-        #     self.terminated = True
+        
+        # this is heuristic and can be removed if unwanted
+        if (self.total_subs >= 2 and not self._used_double_or_triple(visited) and
+                      self._used_double_word(visited) and
+                      expected_score + self.replacement_bonus + (40 - MARGIN_OF_ERROR) + bonus_length_score - self.total_subs*4 <= self.best_score):
+            # this constant can change for more speed over accuracy
+            self.terminated = True
 
         if ((expected_score_without_bonus)*2 + bonus_length_score + self.replacement_bonus <= self.best_score):
             self.terminated = True

@@ -1,7 +1,43 @@
-# Vue 3 + Vite
+# SpellCast Solver
+An application for the Discord Game SpellCast. Spellcast is very similar to Boggle, where you try to find the best word possible
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+I saw some existing solutions out there and wanted to make a faster and cleaner solution. My application can support up to 4 substitions within a minute. 
 
-## Recommended IDE Setup
+![image](https://github.com/AllanKoder/SpellCastSolver/assets/74692833/decd5829-2dc3-41b7-b8ad-1de6b02c21b9)
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+_blue tile is the start of the word_
+
+_red tile is a tile that needs to be substituted_
+
+
+### Speed Improvements 
+
+Using a heap and priority prefix tree, where prefixes that lead to a higher word at the leaf are prioritized more, we can navigate through all the best words first. Afterwards, we will reach a point where the word in the heap, even with the double word multiplier and triple letter bonus, cannot beat the existing best solution. This is where we can halt.
+
+![early stopping  (for real)](https://github.com/AllanKoder/SpellCastSolver/assets/74692833/b1e08a64-6958-4030-b45a-e8c301164ae9)
+
+In this diagram, we have a example of early stopping. There can be other heuristics added to this, where if we reach too small of a slope, we can stop the search.
+
+### How to run:
+**For Backend:**
+```
+cd spellCastSolverBackend
+py -m uvicorn main:app
+```
+**For Frontend:**
+```
+cd spellCastUI
+npm run dev
+```
+
+### Features:
+- Up to 4 substitions
+- Very fast for competitive gameplay
+- Clean and easy UI
+- Can edit the margin of error for higher speed
+- Has a higher average case time complexity than a bruteforce prefix tree search.
+
+
+### Potential Improvements:
+- Using Monte Carlo for determining if shuffle is optimal
+- Accounting for gems and optimal gem collection
