@@ -4,6 +4,9 @@ from spellCast.spellCastChecker import SpellCastChecker
 from spellCast.heap import Heap
 import time
 
+# increase this for increased speed at cost of accuracy
+MARGIN_OF_ERROR = 5
+
 # margin of error for solving words with 3 subs
 MARGIN_OF_ERROR_3 = 10
 
